@@ -1,0 +1,56 @@
+8. Monitoring and Logging/
+  └── goldengate/
+      ├── simulator/
+      │   ├── metrics_generator.py
+      │   └── logs_generator.py
+      ├── collectors/
+      │   └── collector.py
+      ├── alerts/
+      │   └── lag_alert.py
+      ├── dashboards/
+      │   └── streamlit_app.py
+      └── README.md
+
+
+      🐍 Treinar Python no GoldenGate (na prática)
+1️⃣ Coleta de métricas (simulada ou real)
+
+requests
+
+subprocess
+
+oracledb
+
+2️⃣ Parsing de logs GoldenGate
+
+Regex
+
+Classificação de erros
+
+Detecção de padrões
+
+3️⃣ Time series de lag
+
+pandas
+
+numpy
+
+4️⃣ Alertas
+
+SLA breach
+
+Lag crescente
+
+Processo parado
+
+5️⃣ Dashboards
+
+Streamlit
+
+Plotly
+
+6️⃣ Prometheus Exporter
+
+prometheus-client
+
+Métricas reais de observabilidade
