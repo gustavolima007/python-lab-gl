@@ -1,0 +1,27 @@
+1. Data Pipelines ETL and ELT/
+└── ingestion/
+    └── mongodb/
+        ├── load_from_kaggle.py
+        ├── queries.py
+        ├── aggregations.py
+        └── README.md
+
+
+Ingestão de dados (Python → MongoDB) 📥
+O que estudar
+
+Conexão com MongoDB
+
+InsertOne vs InsertMany
+
+Bulk inserts
+
+Performance de escrita
+
+Indexação
+
+Bibliotecas
+
+pymongo
+
+pandas
