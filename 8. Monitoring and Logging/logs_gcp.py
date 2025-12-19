@@ -1,8 +1,10 @@
 """
-Envia um único registro de log para o BigQuery.
+Registra um evento único no BigQuery via insert_rows_json com credenciais em base64.
+Carrega o serviço do GCP e publica o log de status para a tabela logs_processos_python.
 
-Pode ser usado como exemplo em projetos que precisam reportar
-status sobre execução.
+Author: Gustavo F. Lima
+License: MIT
+Created: 2025
 """
 
 import base64

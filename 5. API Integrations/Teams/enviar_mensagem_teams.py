@@ -1,10 +1,10 @@
 """
-Este script envia uma mensagem de alerta para um grupo do Microsoft Teams
-utilizando um fluxo do Power Automate como endpoint HTTP.
+Dispara alerta JSON para um fluxo do Power Automate direcionado ao Teams.
+Posta a requisição e informa o status HTTP para confirmar o envio.
 
-O fluxo recebe os dados em formato JSON e publica a mensagem automaticamente
-no canal configurado do Teams. Ideal para alertas de falhas, erros de processos
-ou notificações automáticas de sistemas.
+Author: Gustavo F. Lima
+License: MIT
+Created: 2025
 """
 
 import requests

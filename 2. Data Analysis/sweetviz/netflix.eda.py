@@ -1,3 +1,12 @@
+"""
+Analisa o dataset netflix_titles com Sweetviz para gerar insights visuais.
+Carrega o CSV e salva o relatório HTML resultante para inspeção offline.
+
+Author: Gustavo F. Lima
+License: MIT
+Created: 2025
+"""
+
 import pandas as pd
 import sweetviz as sv
 

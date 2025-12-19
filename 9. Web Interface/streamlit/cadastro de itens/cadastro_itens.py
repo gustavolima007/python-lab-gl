@@ -1,3 +1,12 @@
+"""
+Fornece interface Streamlit para cadastro manual de itens com validações.
+Mantém a lista na sessão, mostra totais e permite exportar em Excel.
+
+Author: Gustavo F. Lima
+License: MIT
+Created: 2025
+"""
+
 # -*- coding: utf-8 -*-
 """
 Cadastro de Itens — Versão Inicial

@@ -1,3 +1,12 @@
+"""
+Substitui documentos na coleção MongoDB com os dados de df_final_pandas.
+Limpa a coleção antes e converte o DataFrame em documentos para insert_many.
+
+Author: Gustavo F. Lima
+License: MIT
+Created: 2025
+"""
+
 # Para instalar as dependências necessárias, use o seguinte comando:
 # pip install pymongo pandas
 

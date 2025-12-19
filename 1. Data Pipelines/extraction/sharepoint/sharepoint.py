@@ -1,11 +1,10 @@
 """
-SharePoint Extraction using Microsoft Graph API
+Extrai arquivos Excel do SharePoint via Microsoft Graph e MSAL.
+Lista os itens da pasta configurada e grava localmente para consumo posterior.
 
-This script connects to Microsoft SharePoint using OAuth2 (MSAL),
-lists files from a specific folder, and downloads Excel files locally.
-
-Secrets and identifiers are loaded from environment variables.
-This script is intended for STUDY and LAB usage.
+Author: Gustavo F. Lima
+License: MIT
+Created: 2025
 """
 
 # ========================

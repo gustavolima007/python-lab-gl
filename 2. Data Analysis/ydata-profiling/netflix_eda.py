@@ -1,3 +1,12 @@
+"""
+Cria relatório ydata-profiling do netflix_titles com modo exploratório.
+Salva o profile HTML com título personalizado e confirma conclusão no console.
+
+Author: Gustavo F. Lima
+License: MIT
+Created: 2025
+"""
+
 import pandas as pd
 from ydata_profiling import ProfileReport
 

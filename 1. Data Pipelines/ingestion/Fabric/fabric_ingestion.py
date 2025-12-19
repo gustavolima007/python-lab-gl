@@ -1,3 +1,12 @@
+"""
+Envia um pandas DataFrame para uma tabela Delta no Fabric Lakehouse.
+Cria sessão Spark com suporte Delta e grava a tabela configurada em overwrite.
+
+Author: Gustavo F. Lima
+License: MIT
+Created: 2025
+"""
+
 # Para instalar as dependências necessárias, use o seguinte comando:
 # pip install pyspark delta-spark pandas
 

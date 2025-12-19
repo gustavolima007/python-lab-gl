@@ -1,3 +1,12 @@
+"""
+Carrega df_final_pandas na tabela LAND.importacao_xml_v1 do BigQuery.
+Autentica via GOOGLE_APPLICATION_CREDENTIALS e usa WRITE_TRUNCATE no job.
+
+Author: Gustavo F. Lima
+License: MIT
+Created: 2025
+"""
+
 # Para instalar as dependências necessárias, use o seguinte comando:
 # pip install google-cloud-bigquery google-auth
 

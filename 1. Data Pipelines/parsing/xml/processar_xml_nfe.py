@@ -1,3 +1,12 @@
+"""
+Extrai itens e impostos de XMLs de NF-e para um DataFrame unificado.
+Percorre pastas específicas, concatena resultados e exibe um resumo final.
+
+Author: Gustavo F. Lima
+License: MIT
+Created: 2025
+"""
+
 import os
 import glob
 import xml.etree.ElementTree as ET

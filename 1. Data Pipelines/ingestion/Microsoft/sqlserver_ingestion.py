@@ -1,3 +1,12 @@
+"""
+Insere df_final_pandas em uma tabela SQL Server usando SQLAlchemy.
+Substitui a tabela destino e aproveita fast_executemany para performance.
+
+Author: Gustavo F. Lima
+License: MIT
+Created: 2025
+"""
+
 # Para instalar as dependências necessárias, use o seguinte comando:
 # pip install pyodbc sqlalchemy pandas
 

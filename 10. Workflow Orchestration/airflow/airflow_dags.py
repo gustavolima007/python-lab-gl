@@ -1,6 +1,10 @@
 """
-Este script dispara manualmente uma DAG no Google Cloud Composer
-utilizando a API oficial do Google.
+Dispara DAG no Composer via executeAirflowCommand da API do Google.
+Autentica com service account e envia o comando 'dags trigger' com payload.
+
+Author: Gustavo F. Lima
+License: MIT
+Created: 2025
 """
 
 import json

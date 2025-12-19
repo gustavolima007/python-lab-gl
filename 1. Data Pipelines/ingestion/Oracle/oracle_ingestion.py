@@ -1,3 +1,12 @@
+"""
+Lê um CSV local e envia o conteúdo para uma tabela LAND no Oracle.
+Conecta via SQLAlchemy/oracledb e usa if_exists replace para sobrescrever.
+
+Author: Gustavo F. Lima
+License: MIT
+Created: 2025
+"""
+
 # pip install oracledb pandas sqlalchemy
 
 import os
