@@ -1,5 +1,5 @@
 """
-Lê um CSV local e envia o conteúdo para uma tabela LAND no Oracle.
+Lê um CSV local e envia o conteúdo para uma tabela no Oracle.
 Conecta via SQLAlchemy/oracledb e usa if_exists replace para sobrescrever.
 
 Author: Gustavo F. Lima
