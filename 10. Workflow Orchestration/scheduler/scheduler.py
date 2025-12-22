@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Agenda a execução diária de meu_script.py às 02:00 por subprocess.
 Verifica a existência do script e repete o loop a cada 24h reportando status.
