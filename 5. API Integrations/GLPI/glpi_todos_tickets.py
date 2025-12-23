@@ -1,185 +1,175 @@
 """
-API para extração de chamados do GLPI e exportação para CSV.
+API para extração de todos os chamados do GLPI, filtrando por categorias específicas.
 
 Author: Gustavo F. Lima
 License: MIT
 Created: 2025
 """
+
 import os
-
-import pandas as pd
+import json
+import csv
 import requests
-from dotenv import load_dotenv
 
-# ===============================
-# CARREGA .ENV
-# ===============================
-load_dotenv()
+def load_env(path=".env"):
+    if not os.path.isfile(path):
+        return
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            k, v = line.split("=", 1)
+            os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
 
-GLPI_URL = os.getenv("GLPI_URL")
-APP_TOKEN = os.getenv("GLPI_APP_TOKEN")
-USER_TOKEN = os.getenv("GLPI_USER_TOKEN")
+# .env na raiz do projeto
+load_env(".env")
 
-if not all([GLPI_URL, APP_TOKEN, USER_TOKEN]):
-    raise RuntimeError("❌ Variáveis de ambiente do GLPI não configuradas.")
+GLPI_URL = os.environ["GLPI_URL"].rstrip("/")
+APP_TOKEN = os.environ["GLPI_APP_TOKEN"]
+USER_TOKEN = os.environ["GLPI_USER_TOKEN"]
 
-CSV_OUTPUT = "chamados_glpi.csv"
-
-def to_int(value, default=0):
-    """Parses an int safely."""
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return default
-
-def parse_int_list(name):
-    """Reads a comma separated environment variable as ints."""
-    value = os.getenv(name)
-    if not value:
-        return []
-    cleaned = [part.strip() for part in value.split(",")]
-    values = []
-    for part in cleaned:
-        if not part:
-            continue
-        try:
-            values.append(int(part))
-        except ValueError:
-            continue
-    return values
-
-def parse_optional_int(name):
-    """Returns an int from the environment or None."""
-    value = os.getenv(name)
-    if not value:
-        return None
-    try:
-        return int(value)
-    except ValueError:
-        return None
-
-CATEGORY_IDS = parse_int_list("GLPI_CATEGORY_IDS") or parse_int_list("GLPI_CATEGORY_ID")
-REQUESTER_ID = parse_optional_int("GLPI_REQUESTER_ID")
-GROUP_ASSIGN_ID = parse_optional_int("GLPI_GROUP_ASSIGN_ID")
-
-HEADERS = {
-    "Content-Type": "application/json",
-    "App-Token": APP_TOKEN,
-    "Authorization": f"user_token {USER_TOKEN}"
+STATUS_MAP = {
+    1: "Novo",
+    2: "Em atendimento (atribuído)",
+    3: "Em atendimento (planejado)",
+    4: "Pendente",
+    5: "Solucionado",
+    6: "Fechado",
 }
 
+# =========================
+# FILTRO DE CATEGORIAS (HML)
+# =========================
+CATEGORY_DISPLAY = 2   # TV sem conteúdo
+CATEGORY_STATUS  = 3   # Player offline/desatualizado
 
-def ticket_matches_filters(ticket):
-    """Checks whether a ticket satisfies the optional filters."""
-    if CATEGORY_IDS:
-        if to_int(ticket.get("itilcategories_id")) not in CATEGORY_IDS:
-            return False
-    if REQUESTER_ID is not None:
-        if to_int(ticket.get("users_id_recipient")) != REQUESTER_ID:
-            return False
-    if GROUP_ASSIGN_ID is not None:
-        if to_int(ticket.get("groups_id_assign")) != GROUP_ASSIGN_ID:
-            return False
-    return True
+ALLOWED_CATEGORIES = {CATEGORY_DISPLAY, CATEGORY_STATUS}
 
-# ===============================
-# SESSÃO
-# ===============================
-def init_session():
-    r = requests.get(f"{GLPI_URL}/initSession", headers=HEADERS)
-    r.raise_for_status()
-    return r.json()["session_token"]
+# Se for PRD, troque para:
+# CATEGORY_DISPLAY = 464
+# CATEGORY_STATUS  = 465
+# ALLOWED_CATEGORIES = {CATEGORY_DISPLAY, CATEGORY_STATUS}
 
-def kill_session(session_token):
-    requests.get(
-        f"{GLPI_URL}/killSession",
-        headers={**HEADERS, "Session-Token": session_token}
-    )
+# Ajustes
+PAGE_SIZE = 200
+PRINT_EACH = True
+SAVE_JSON = False
+SAVE_CSV = True
 
-# ===============================
-# BUSCA TODOS OS TICKETS
-# ===============================
-def get_all_tickets(session_token):
-    tickets = []
-    start = 0
-    limit = 100
-
-    headers = {**HEADERS, "Session-Token": session_token}
-
-    while True:
-        params = {
-            "range": f"{start}-{start + limit - 1}",
-            "forcedisplay[0]": "id",
-            "forcedisplay[1]": "name",
-            "forcedisplay[2]": "status",
-            "forcedisplay[3]": "date",
-            "forcedisplay[4]": "closedate",
-            "forcedisplay[5]": "itilcategories_id",
-            "forcedisplay[6]": "users_id_recipient",
-            "forcedisplay[7]": "groups_id_assign",
-        }
-
-        r = requests.get(f"{GLPI_URL}/search/Ticket", headers=headers, params=params)
-        r.raise_for_status()
-
-        data = r.json().get("data", [])
-        if not data:
-            break
-
-        tickets.extend(data)
-
-        if len(data) < limit:
-            break
-
-        start += limit
-
-    return tickets
-
-# ===============================
-# MAIN
-# ===============================
 def main():
-    session_token = init_session()
+    # 1) init session
+    init_url = f"{GLPI_URL}/initSession"
+    init_headers = {
+        "Content-Type": "application/json",
+        "App-Token": APP_TOKEN,
+        "Authorization": f"user_token {USER_TOKEN}",
+    }
+    r = requests.get(init_url, headers=init_headers, timeout=30)
+    r.raise_for_status()
+    session_token = r.json()["session_token"]
+
+    headers = {
+        "Content-Type": "application/json",
+        "App-Token": APP_TOKEN,
+        "Session-Token": session_token,
+    }
+
+    tickets_all = []  # só se SAVE_JSON=True
+    csv_file = None
+    csv_writer = None
+
     try:
-        tickets = get_all_tickets(session_token)
+        if SAVE_CSV:
+            csv_file = open("tickets_filtrados.csv", "w", newline="", encoding="utf-8")
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow([
+                "id",
+                "itilcategories_id",
+                "status_code",
+                "status_label",
+                "name",
+                "date_creation",
+                "date_mod",
+            ])
 
-        if not tickets:
-            print("⚠️ Nenhum chamado encontrado.")
-            return
+        start = 0
 
-        # ===============================
-        # FILTROS NO PYTHON (SEGUROS)
-        # ===============================
-        filters_active = bool(CATEGORY_IDS or REQUESTER_ID is not None or GROUP_ASSIGN_ID is not None)
-        if filters_active:
-            tickets = [t for t in tickets if ticket_matches_filters(t)]
+        while True:
+            end = start + PAGE_SIZE - 1
+            url = f"{GLPI_URL}/Ticket/"
+            params = {"range": f"{start}-{end}"}
 
-        if not tickets:
-            print("⚠️ Nenhum chamado após aplicar filtros.")
-            return
+            resp = requests.get(url, headers=headers, params=params, timeout=60)
 
-        df = pd.DataFrame(tickets)
+            # ✅ Oculta erro específico de range (encerra o loop)
+            if resp.status_code == 400 and "ERROR_RANGE_EXCEED_TOTAL" in resp.text:
+                break
 
-        df.rename(columns={
-            "id": "ID",
-            "name": "Título",
-            "status": "Status",
-            "date": "Data de abertura",
-            "closedate": "Data de fechamento",
-            "itilcategories_id": "Categoria",
-            "users_id_recipient": "Requester",
-            "groups_id_assign": "Grupo"
-        }, inplace=True)
+            if resp.status_code >= 400:
+                print(f"Erro ao listar tickets ({resp.status_code}): {resp.text}")
+                resp.raise_for_status()
 
+            batch = resp.json()
+            if not batch:
+                break
 
-        df.to_csv(CSV_OUTPUT, index=False, encoding="utf-8-sig")
-        print(f"✅ CSV gerado com sucesso: {CSV_OUTPUT}")
+            for t in batch:
+                # ✅ ID real do ticket (não é índice do loop)
+                tid = t.get("id")
+
+                # ✅ categoria do ticket
+                cat_id = t.get("itilcategories_id")
+
+                # ✅ aplica filtro: só categorias 2 e 3 (ou 464/465 no PRD)
+                if cat_id not in ALLOWED_CATEGORIES:
+                    continue
+
+                sc = int(t.get("status", -1))
+                sl = STATUS_MAP.get(sc, f"Desconhecido({sc})")
+                name = t.get("name")
+                dc = t.get("date_creation")
+                dm = t.get("date_mod")
+
+                if PRINT_EACH:
+                    print(f"{tid} | cat={cat_id} | {sl} | {name}")
+
+                if SAVE_CSV and csv_writer:
+                    csv_writer.writerow([tid, cat_id, sc, sl, name, dc, dm])
+
+                if SAVE_JSON:
+                    tickets_all.append(t)
+
+            # ✅ última página
+            if len(batch) < PAGE_SIZE:
+                break
+
+            start += PAGE_SIZE
+
+        print("\n✅ Finalizado: tickets filtrados pelas categorias foram coletados.")
+        if SAVE_CSV:
+            print("📄 CSV gerado: tickets_filtrados.csv")
+        if SAVE_JSON:
+            with open("tickets_filtrados.json", "w", encoding="utf-8") as f:
+                json.dump(tickets_all, f, ensure_ascii=False, indent=2)
+            print("📄 JSON gerado: tickets_filtrados.json")
 
     finally:
-        kill_session(session_token)
+        if csv_file:
+            csv_file.close()
 
-# ===============================
-# ENTRYPOINT
-# ===============================
+        # 3) kill session
+        kill_url = f"{GLPI_URL}/killSession"
+        kill_headers = {
+            "Content-Type": "application/json",
+            "App-Token": APP_TOKEN,
+            "Session-Token": session_token,
+        }
+        try:
+            requests.get(kill_url, headers=kill_headers, timeout=15)
+        except Exception:
+            pass
+
 if __name__ == "__main__":
     main()
+
