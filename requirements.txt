@@ -1,0 +1,27 @@
+# API e integracoes externas
+requests>=2.31.0         # GLPI, Teams, Composer e SharePoint usam chamadas HTTP sincronas.
+msal>=1.24.0              # Autenticacao MSAL requerida para o SharePoint via Microsoft Graph.
+
+# Manipulacao tabular e interface
+pandas>=2.2.0               # Base para Data Pipelines, EDA e cadastro no Streamlit.
+streamlit>=1.30.0            # Interface de cadastro de itens via Streamlit.
+openpyxl>=3.1.2              # Exportacao Excel usada pela interface de cadastro de itens.
+
+# Relatorios exploratorios
+ydata-profiling>=4.2.0    # Relatorio ydata-profiling do dataset Netflix.
+sweetviz>=2.2.3           # Relatorio visual Sweetviz sobre netflix_titles.
+dataprep>=0.4.4           # Relatorios com dataprep.eda
+
+# Conectores e drivers de banco
+python-dotenv>=1.0.0      # Carrega as variaveis de ambiente nos scripts de Oracle.
+oracledb>=1.3.0            # Cliente Oracle usado nas operacoes de criacao e insercao.
+sqlalchemy>=2.0.21         # ORM/engine para Oracle, SQL Server e CSV.
+pyodbc>=4.0.40             # Driver ODBC necessario para SQL Server.
+pymongo>=4.5.0             # Ingestao MongoDB com DataFrames convertidos.
+
+# Big Data e cloud
+google-cloud-bigquery>=3.12.0  # Insercoes em BigQuery (logs e pipelines de ingestao).
+google-auth>=2.23.0           # Credenciais Google usadas no BigQuery e Composer.
+pandas-gbq>=0.17.10           # Rotinas que enviam DataFrames pandas ao BigQuery.
+pyspark>=3.5.0                # Spark usado na ingestao Fabric Lakehouse.
+delta-spark>=2.1.0            # Suporte Delta Lake para o Fabric.
